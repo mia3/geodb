@@ -1,0 +1,66 @@
+#!/usr/bin/env php
+<?php
+
+class UpdateData {
+
+	function __construct() {
+		$countries = explode(',', 'de,ch,nl,fr,it,dk,es');
+		$data = array(
+
+		);
+		$connection = new \SQLite3(__DIR__ . '/../geodb.sqlite');
+
+		foreach ($countries as $country) {
+			$connection->query('DELETE FROM geodb WHERE countryCode = "' . strtoupper($country) . '"');
+			$data[$country] = array();
+			$content = $this->downloadData($country);
+			$lines = explode(chr(10), $content);
+			$columns = array(
+				'countryCode',
+				'postalCode',
+				'placeName',
+				'adminName1',
+				'adminCode1',
+				'adminName2',
+				'adminCode2',
+				'adminName3',
+				'adminCode3',
+				'latitude',
+				'longitude'
+			);
+			foreach ($lines as $line) {
+				if (empty($line)) {
+					continue;
+				}
+				$row = array();
+				foreach (str_getcsv($line, "\t") as $key => $value) {
+					if (!isset($columns[$key])) {
+						continue;
+					}
+					$row[$columns[$key]] = '"' . $value . '"';
+				}
+				$query = '
+					INSERT INTO geodb
+					(' . implode(',', $columns) . ')
+					VALUES (' . implode(',', $row) . ');
+				';
+				$connection->query($query);
+			}
+		}
+	}
+
+	public function downloadData($isoCode) {
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		$uri = 'http://download.geonames.org/export/zip/' . strtoupper($isoCode) .'.zip';
+		curl_setopt($ch, CURLOPT_URL, $uri);
+		if (!file_exists('tmp')) {
+			mkdir('tmp');
+		}
+		file_put_contents('tmp/' . $isoCode . '.zip', curl_exec($ch));
+		system('cd tmp && unzip -o -u ' . $isoCode . '.zip');
+		return file_get_contents('tmp/' . strtoupper($isoCode) . '.txt');
+	}
+}
+
+new UpdateData();

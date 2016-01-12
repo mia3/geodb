@@ -1,0 +1,15 @@
+{
+    "name": "mia3/geodb",
+    "authors": [
+        {
+            "name": "Marc Neuhaus",
+            "email": "mneuhaus@famelo.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+          "Mia3\\GeoDb": "src/"
+        }
+    }
+}
