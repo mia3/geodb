@@ -9,7 +9,7 @@
     "require": {},
     "autoload": {
         "psr-4": {
-          "Mia3\\GeoDb": "src/"
+          "Mia3\\GeoDb\\": "src/"
         }
     }
 }
